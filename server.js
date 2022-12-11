@@ -8,6 +8,7 @@ const connectDB = require('./config/dbConfig');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
 const verfyJWT = require('./middlewares/verifyJWT');
+const rootRouter = require('./routes/root');
 
 const PORT = process.env.PORT || 3300;
 
@@ -27,27 +28,18 @@ app.use(express.json())
 
 app.use(cookieParser())
 
+/** All serviceable routes are under this root router */
+rootRouter(app)
 
-
-app.use('/', require('./routes/root'))
-app.use('/auth', require('./routes/auth'))
-app.use('/register', require('./routes/register'))
-app.use('/logout', require('./routes/logout'))
-app.use('/products' ,(req, res) => {
-    res.send({product: 'this is a product!'})
-})
-
-app.use(verfyJWT)
-
-
+/** If no serviceable route matches the requested route, then we show a 404 */
 app.use('*', (req, res) => {
     res.status(404).sendFile(path.join(__dirname, '.', 'public', '404.html'))
 })
 
+/** If the request couldn't be handled by any of the above arrangements, it's an error. */
 app.use(errorHandler);
 
-// We only want to listen if there is a mongodb connection.
-
+// We only want to listen if there is a mongodb connection. (Only Once)
 mongoose.connection.once('open', ()=> {
 
 
